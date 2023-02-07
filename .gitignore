@@ -1,3 +1,4 @@
 r-synthdid/
 .vscode/
+
 src/reference-solver.jl

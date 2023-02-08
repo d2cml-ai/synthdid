@@ -47,7 +47,7 @@ end;
 # isnothing(alpha)
 # fw_step(A, x, b, eta, 0.5)
 
-function frank_wolfe(Y, zeta, max_iter, min_decrease, intercept, lambda)
+function sc_weight_fw(Y, zeta, intercept=true, lambda=nothing, min_decrease=1e-3, max_iter=1000)
   T0 = size(Y, 2) - 1
   N0 = size(Y, 1)
   if isnothing(lambda)
@@ -71,6 +71,15 @@ function frank_wolfe(Y, zeta, max_iter, min_decrease, intercept, lambda)
   end
   Dict("lambda" => lambda, "vals" => vals)
 end;
+Y = [1 2 3; 4 5 6; 7 8 9]
+zeta = 1
+intercept = true
+lambda = [1, 1, 1]
+min_decrease = 1e-3
+max_iter = 1000
+using Statistics
+Y[:, 1:2]
+sc_weight_fw(Y, zeta, intercept, lambda)
 
 # TODO: sc.weigth.fw.covariates
 

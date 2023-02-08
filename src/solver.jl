@@ -1,3 +1,5 @@
+using Statistics
+include("data.jl")
 function contract3(X, v=Nothing)
   # if(length(size(X)) == 3 && size(X, 3) == length(v)) return "error"
   out = zeros(size(X, 1), size(X, 2))
@@ -18,15 +20,15 @@ end;
 # Frank_wolfe
 function fw_step(A, x, b, eta, alpha=nothing)
   Ax = A * x
-  half_grad = transpose(Ax .- b) * A + (eta * x)'
+  half_grad = transpose(Ax .- b) * A + eta * x
   i = findmin(half_grad)[2]
   if !isnothing(alpha)
     x *= (1 - alpha)
     x[i] += alpha
     return x
   else
-    d_x = x .* -1
-    d_x[i] = 1 - x[i]
+    d_x = -x
+    d_x[i] .= 1 - x[i]
     if all(d_x .== 0)
       return x
     end
@@ -47,39 +49,45 @@ end;
 # isnothing(alpha)
 # fw_step(A, x, b, eta, 0.5)
 
-function sc_weight_fw(Y, zeta, intercept=true, lambda=nothing, min_decrease=1e-3, max_iter=1000)
+# function sc_weight_fw(Y, zeta, intercept=true, lambda=nothing, min_decrease=1e-3, max_iter=1000)
   T0 = size(Y, 2) - 1
   N0 = size(Y, 1)
   if isnothing(lambda)
     lambda = fill(1 / T0, T0)
   end
   if intercept
-    Y = [Y[:, i] .- mean(Y[:, i]) for i in 1:T0]
+    Y = Y.- mean(Y, dims = 1)
   end
 
   t = 0
   vals = zeros(max_iter)
+  # print("A")
+  # Y
   A = Y[:, 1:T0]
   b = Y[:, T0+1]
   eta = N0 * real(zeta^2)
-  while t < max_iter && (t < 2 || vals[t-1] - vals[t] > min_decrease^2)
+  # while t < max_iter && (t < 2 || vals[t-1] - vals[t] > min_decrease^2)
     t += 1
-    lambda_p = fw_step(A, lambda, b, eta)
+    lambda_p = fw_step(A, lambda, b, nothing)
     lambda = lambda_p
     err = Y[1:N0, :] * [lambda; -1]
     vals[t] = real(zeta^2) * sum(lambda .^ 2) + sum(err .^ 2) / N0
-  end
-  Dict("lambda" => lambda, "vals" => vals)
-end;
-Y = [1 2 3; 4 5 6; 7 8 9]
-zeta = 1
+  # end
+  # Dict("lambda" => lambda, "vals" => vals)
+# end;
+# Y
+# Y .- mean(Y, dims = 1)
+# sc_weight_fw(Y, zeta, intercept, lambda)
+Y = reshape(rand(100), 10, 10)
+Y = [8 4 1; 10 1 8; 0 6 1]
+Y[:, 1]
+zeta = 1+1im
 intercept = true
 lambda = [1, 1, 1]
 min_decrease = 1e-3
 max_iter = 1000
 using Statistics
 Y[:, 1:2]
-sc_weight_fw(Y, zeta, intercept, lambda)
 
 # TODO: sc.weigth.fw.covariates
 

@@ -1,8 +1,8 @@
-using Statistics
+using Statistics, DataFrames
 N0, T0 = 3, 4
 Y = reshape(1:100, 10, 10)
 
-function collapse_form(Y, N0, T0)
+function collapse_form(Y, N0::Float16, T0::Float16)
   N, T = size(Matrix(Y))
   head = Y[1:N0, 1:T0]
   head_row_mean = mean(Y[1:N0, (T0+1):T], dims=2)
@@ -31,3 +31,35 @@ end
 # x[na_x] = 12
 # minimum(x[.!na_x])
 # pairwise_sum_decreasing(x, y)
+
+
+function panel_matrices(panel::DataFrame; unit=1, time=2, outcome=3, treatment=4, treated_last=true)
+  index_to_name(x) = x in 1:size(panel, 2) ? names(panel)[x] : x
+  if any(ismissing.(eachrow(panel)))
+    error("Missing values in `panel`.")
+  end
+  # if length(unique(panel[:, treatment])) == 1
+  #   error("There is no variation in treatment status.")
+  # end
+  # if !all(ismember(panel[:, treatment], [0, 1]))
+  #   error("The treatment status should be in 0 or 1.")
+  # end
+  # panel = DataFrame(map(col ->
+  #     begin
+  #       if isa(col, CategoricalArray) || isa(col, Date)
+  #         convert(Vector{String}, col)
+  #       else
+  #         convert(Vector, col)
+  #       end
+  #     end,
+  #   panel)
+  # )
+  sort!(panel, [:x2, :x1])
+  return panel
+
+end
+
+y_panel = DataFrame(reshape(rand(100), 10, 10), :auto)
+
+panel_matrices(y_panel)
+

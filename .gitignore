@@ -2,3 +2,5 @@ r-synthdid/
 .vscode/
 
 ./src/reference-solver.jl
+src/reference-solver.jl
+js/

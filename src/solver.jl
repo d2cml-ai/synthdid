@@ -1,21 +1,23 @@
 using Statistics
 include("data.jl")
-function contract3(X, v=Nothing)
-  # if(length(size(X)) == 3 && size(X, 3) == length(v)) return "error"
-  out = zeros(size(X, 1), size(X, 2))
-  if isnothing(v)
+
+function contract3(X::Array{Float64,3}, v::Vector{Float64}=nothing)::Matrix{Float64}
+  if !isnull(v) && size(X, 3) != length(v)
+    throw(ArgumentError("The length of `v` must match the size of the third dimension of `X`"))
+  end
+  out = zeros(Float64, size(X, 1), size(X, 2))
+  if isnull(v)
     return out
   end
   for ii in eachindex(v)
     out .+= v[ii] * X[:, :, ii]
   end
   return out
-end;
+end
+X = reshape(reverse(1:27), (3, 3, 3))
+v = 1:3
 
-# X = reshape(reverse(1:27), (3, 3, 3))
-# v = 1:3
-
-# contract3(X, v)
+contract3(X, v)
 
 # Frank_wolfe
 function fw_step(A, x, b, eta, alpha=nothing)
@@ -50,30 +52,30 @@ end;
 # fw_step(A, x, b, eta, 0.5)
 
 # function sc_weight_fw(Y, zeta, intercept=true, lambda=nothing, min_decrease=1e-3, max_iter=1000)
-  T0 = size(Y, 2) - 1
-  N0 = size(Y, 1)
-  if isnothing(lambda)
-    lambda = fill(1 / T0, T0)
-  end
-  if intercept
-    Y = Y.- mean(Y, dims = 1)
-  end
+T0 = size(Y, 2) - 1
+N0 = size(Y, 1)
+if isnothing(lambda)
+  lambda = fill(1 / T0, T0)
+end
+if intercept
+  Y = Y .- mean(Y, dims=1)
+end
 
-  t = 0
-  vals = zeros(max_iter)
-  # print("A")
-  # Y
-  A = Y[:, 1:T0]
-  b = Y[:, T0+1]
-  eta = N0 * real(zeta^2)
-  # while t < max_iter && (t < 2 || vals[t-1] - vals[t] > min_decrease^2)
-    t += 1
-    lambda_p = fw_step(A, lambda, b, nothing)
-    lambda = lambda_p
-    err = Y[1:N0, :] * [lambda; -1]
-    vals[t] = real(zeta^2) * sum(lambda .^ 2) + sum(err .^ 2) / N0
-  # end
-  # Dict("lambda" => lambda, "vals" => vals)
+t = 0
+vals = zeros(max_iter)
+# print("A")
+# Y
+A = Y[:, 1:T0]
+b = Y[:, T0+1]
+eta = N0 * real(zeta^2)
+# while t < max_iter && (t < 2 || vals[t-1] - vals[t] > min_decrease^2)
+t += 1
+lambda_p = fw_step(A, lambda, b, nothing)
+lambda = lambda_p
+err = Y[1:N0, :] * [lambda; -1]
+vals[t] = real(zeta^2) * sum(lambda .^ 2) + sum(err .^ 2) / N0
+# end
+# Dict("lambda" => lambda, "vals" => vals)
 # end;
 # Y
 # Y .- mean(Y, dims = 1)
@@ -81,7 +83,7 @@ end;
 Y = reshape(rand(100), 10, 10)
 Y = [8 4 1; 10 1 8; 0 6 1]
 Y[:, 1]
-zeta = 1+1im
+zeta = 1 + 1im
 intercept = true
 lambda = [1, 1, 1]
 min_decrease = 1e-3
@@ -99,28 +101,4 @@ function sc_weight_fw_covariates(
 
 end;
 
-struct normal1
-  x::Float64
-  y::Float64
-  function xy(self)
-    return self.x + self.y
-  end
-end
 
-normal1(1.0, 2.9)
-
-
-struct MyClass4
-  x
-  y
-  suma(self) = self.x + self.y
-
-end
-
-# Crear un objeto de la clase MyClass
-# my_obj = MyClass4(1.0, 2.0)
-
-
-
-# Llamar el método sum
-println(my_obj.sum()) # Imprime 3.0

@@ -1,5 +1,5 @@
 using DataFrames, CSV
-function data(file)
+function data(file::String)
   # path = joinpath(dirname(pathof()))
   # path = pwd() * "\$(file).csv"
   path = joinpath(pwd(), "data\\$(file).csv")

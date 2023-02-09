@@ -2,7 +2,7 @@ using Statistics, DataFrames
 N0, T0 = 3, 4
 Y = reshape(1:100, 10, 10)
 
-function collapse_form(Y, N0::Float16, T0::Float16)
+function collapse_form(Y::Union{DataFrames,Matrix}, N0::Int64, T0::Int64)
   N, T = size(Matrix(Y))
   head = Y[1:N0, 1:T0]
   head_row_mean = mean(Y[1:N0, (T0+1):T], dims=2)
@@ -12,10 +12,9 @@ function collapse_form(Y, N0::Float16, T0::Float16)
   bottom_matrix = hcat(bottom_col_mean, bottom)
   return vcat(head_matrix, bottom_matrix)
 end
-
 # collapse_form(Y, N0, T0)
 
-function pairwise_sum_decreasing(x::Vector, y::Vector)
+function pairwise_sum_decreasing(x::Vector{Number}, y::Vector{Number})
   na_x = isnan.(x)
   na_y = isnan.(y)
   x[na_x] .= minimum(x[.!na_x])
@@ -41,7 +40,11 @@ mutable struct panelMatrix
   N0::Int
   T0::Int
 end
-function panel_matrices(panel::DataFrame; unit=1, time=2, outcome=3, treatment=4, treated_last=true)
+
+function panel_matrices(panel::DataFrame;
+  unit::Union{String,Int}=1, time::Union{String,Int}=2,
+  outcome::Union{String,Int}=3, treatment::Union{String,Int}=4,
+  treated_last::Bool=true)
   index_to_name(x) = x in 1:size(panel, 2) ? names(panel)[x] : x
   if any(ismissing.(eachrow(panel)))
     error("Missing values in `panel`.")

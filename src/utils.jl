@@ -1,8 +1,8 @@
 using Statistics, DataFrames
-N0, T0 = 3, 4
-Y = reshape(1:100, 10, 10)
+# N0, T0 = 3, 4
+# Y = reshape(1:100, 10, 10)
 
-function collapse_form(Y::Union{DataFrames,Matrix}, N0::Int64, T0::Int64)
+function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
   N, T = size(Matrix(Y))
   head = Y[1:N0, 1:T0]
   head_row_mean = mean(Y[1:N0, (T0+1):T], dims=2)
@@ -83,6 +83,48 @@ function panel_matrices(panel::DataFrame;
   panel = panelMatrix(Y[unit_order, :], W[unit_order, :], unique_units, unique_years, N0, T0)
   return panel
 end
+
+using Distributions
+
+mutable struct random_walk
+  Y::Matrix
+  n0::Number
+  t0::Number
+  L::Matrix
+end
+
+function random_low_rank()
+  n0 = 100
+  n1 = 10
+  t0 = 120
+  t1 = 20
+  n = n0 + n1
+  t = t0 + t1
+  tau = 1
+  sigma = 0.5
+  rank = 2
+  rho = 0.7
+  var = [rho^(abs(x - y)) for x in 1:t, y in 1:t]
+  W = Int.(1:n .> n0) * transpose(Int.(1:t .> t0))
+
+  # U = rand(Poisson(sqrt.(1:n) ./ sqrt(n)), n, rank)
+  pU = Poisson(sqrt(sample(1:n)) ./ sqrt(n))
+  pV = Poisson(sqrt(sample(1:t)) ./ sqrt(t))
+  U = rand(pU, n, rank)
+  V = rand(pV, t, rank)
+
+  # sample.(1:n)
+
+  alpha = reshape(repeat(10 * (1:n) ./ n, outer=(t, 1)), n, t)
+  beta = reshape(repeat(10 * (1:t) ./ t, outer=(n, 1)), n, t)
+  mu = U * V' + alpha + beta
+  error = rand(pV, size(mu))
+  Y = mu .+ tau .* W .+ sigma .* error
+  random_data = random_walk(Y, n0, t0, mu)
+  return random_data
+end
+
+s = random_low_rank();
 
 # panel1 = panel_matrices(data("california_prop99"));
 # panel1.Y

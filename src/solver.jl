@@ -46,27 +46,27 @@ end
 
 # A
 
-x
-A = reshape(1:9.0, 3, 3)
-x = [0.5, 0.5, 0.5]
-b = [1.0, 2.0, 3.0]
-eta = 0.1
-alpha = nothing
-alpha
-isnothing(alpha)
+# x
+# A = reshape(1:9.0, 3, 3)
+# x = [0.5, 0.5, 0.5]
+# b = [1.0, 2.0, 3.0]
+# eta = 0.1
+# alpha = nothing
+# alpha
+# isnothing(alpha)
 # fw_step1(A, x, b, eta)
-A = Matrix(A)
-fw_step1(A, x, b=b, eta=eta, alpha=nothing)
+# A = Matrix(A)
+# fw_step1(A, x, b=b, eta=eta, alpha=nothing)
 
-Y = reshape(rand(100), 10, 10)
-zeta = 1 + 1im
-intercept = true
-lambda = nothing
-min_decrease = 1e-3
-max_iter = 1000
+# Y = reshape(rand(100), 10, 10)
+# zeta = 1 + 1im
+# intercept = true
+# lambda = nothing
+# min_decrease = 1e-3
+# max_iter = 1000
 function sc_weight_fw(
   Y::Matrix, zeta::Number;
-  intercept::Bool=true, lambda::Union{Vector{Number},Nothing}=nothing,
+  intercept::Bool=true, lambda::Union{Vector,Nothing}=nothing,
   min_decrease::Number=1e-3, max_iter::Int64=1000)
   T0 = size(Y, 2) - 1
   N0 = size(Y, 1)
@@ -94,29 +94,29 @@ function sc_weight_fw(
   Dict("lambda" => lambda, "vals" => vals)
 end;
 
-sc_weight_fw(Matrix(reshape(rand(10000), 100, 100)), zeta)
+# sc_weight_fw(Matrix(reshape(rand(10000), 100, 100)), zeta)
 # Y
 # Y .- mean(Y, dims = 1)
 # sc_weight_fw(Y, zeta, intercept, lambda)
-Y = reshape(rand(100), 10, 10)
-Y = [8 4 1; 10 1 8; 0 6 1]
-Y[:, 1]
-zeta = 1 + 1im
-intercept = true
-lambda = [1, 1, 1]
-min_decrease = 1e-3
-max_iter = 1000
-using Statistics
-Y[:, 1:2]
+# Y = reshape(rand(100), 10, 10)
+# Y = [8 4 1; 10 1 8; 0 6 1]
+# Y[:, 1]
+# zeta = 1 + 1im
+# intercept = true
+# lambda = [1, 1, 1]
+# min_decrease = 1e-3
+# max_iter = 1000
+# using Statistics
+# Y[:, 1:2]
 
 # TODO: sc.weigth.fw.covariates
 
-function sc_weight_fw_covariates(
-  Y, x, seta_lambda, zeta_ometa, lambda_intercept, omega_intercept,
-  min_decrease=1e-3, max_iter=1000,
-  lambda, omega, beta, update_lambda, update_omega
-)
+# function sc_weight_fw_covariates(
+#   Y, x, seta_lambda, zeta_ometa, lambda_intercept, omega_intercept,
+#   min_decrease=1e-3, max_iter=1000,
+#   lambda, omega, beta, update_lambda, update_omega
+# )
 
-end;
+# end;
 
 

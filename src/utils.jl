@@ -14,7 +14,8 @@ function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
 end
 # collapse_form(Y, N0, T0)
 
-function pairwise_sum_decreasing(x::Vector{Number}, y::Vector{Number})
+# function pairwise_sum_decreasing(x::Vector{Number}, y::Vector{Number})
+function pairwise_sum_decreasing(x::Vector, y::Vector)
   na_x = isnan.(x)
   na_y = isnan.(y)
   x[na_x] .= minimum(x[.!na_x])
@@ -124,7 +125,7 @@ function random_low_rank()
   return random_data
 end
 
-s = random_low_rank();
+# s = random_low_rank();
 
 # panel1 = panel_matrices(data("california_prop99"));
 # panel1.Y

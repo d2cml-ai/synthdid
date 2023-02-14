@@ -120,3 +120,102 @@ end;
 # end;
 
 
+mutable struct sc_weight_fw_covariates1
+  lambda
+  omega
+  beta
+  vals
+end
+
+mutable struct update_weights1
+  val
+  lambda
+  omega
+  err_lambda
+  err_omega
+end
+
+function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims(Y)+1),
+                                  zeta_lambda = 0, zeta_omega = 0,
+                                  lambda_intercept = true, omega_intercept = true,
+                                  min_decrease = 1e-3, max_iter = 1000,
+                                  lambda = nothing, omega = nothing, beta = nothing, update_lambda = true, update_omega = true)
+  
+  if length(size(Y)) == 2 && length(size(X)) == 3 && all(size(Y) == size(X)[1:2]) && all(Matrix((isfinite.(Y)))) && all(isfinite.(X))
+      "continue"
+  else
+  error("the following condition is not met: length(size(Y)) != 2 || length(size(X)) != 3 || all(size(Y) != size(X)[1:2]) || !all(Matrix((isfinite.(Y)))) || !all(isfinite.(X))")
+  end
+  
+  T0 = size(Y)[2] - 1
+  N0 = size(Y)[1] - 1
+  if ndims(X) == 2
+      cat(X; dims = ndims(X)+1)
+  end
+  if isnothing(lambda)
+      lambda = repeat([1/T0], T0)
+  end
+  if isnothing(omega)
+      omega = repeat([1/N0], N0)
+  end;
+  if isnothing(beta)
+      beta = repeat([0.0], size(X)[3]-1)
+  end
+  
+  function update_weights(Y, lambda, omega)
+
+      Y_lambda = zeros(N0, T0+1);
+      if lambda_intercept
+          for i in 1:size(Y,2)
+              Y_lambda[:,i] = Y[1:N0,i] .- mean(Y[1:N0,i])
+          end
+      else
+          Y_lambda = Y[1:N0,:]
+      end
+      if update_lambda 
+          lambda = fw_step(Y_lambda[:, 1:T0], lambda, Y_lambda[:,T0+1], N0 * real(zeta_lambda^2))
+      end
+      err_lambda = Y_lambda * vcat(lambda, -1);
+
+      Y_omega = zeros(size(Matrix(Y[:, 1:T0])', 1), size(Matrix(Y[:, 1:T0])',2));
+      if omega_intercept
+          for i in 1:size(Matrix(Y[:, 1:T0])', 2)
+              Y_omega[:,i] = Matrix(Y[:, 1:T0])'[1:T0, i] .- mean(Matrix(Y[:, 1:T0])'[1:T0, i])
+          end
+      else
+          Y_omega = Matrix(Y[:, 1:T0])'
+      end
+      if update_omega
+          omega = fw_step(Y_omega[:, 1:N0], omega, Y_omega[:,N0+1], N0 * real(zeta_omega^2))
+      end
+      err_omega = Y_omega * vcat(omega, -1)
+      val = real(zeta_omega.^2) * sum(omega.^2) + real(zeta_lambda.^2) * sum(lambda.^2) + sum(err_omega.^2) / T0 .+ sum(err_lambda.^2) ./ N0
+      # return Dict("val" => val, "lambda" => lambda, "omega" => omega, "err_lambda" => err_lambda, "err_omega" => err_omega)
+      res1 = update_weights1(val, lambda, omega, err_lambda, err_omega);
+      return res1;
+      
+  end
+
+  vals = repeat([0.0], max_iter);
+  t = 0
+  Y_beta = Y .- contract3(X, beta);
+  weights = update_weights(Y_beta, lambda, omega);
+
+  while t < max_iter && (t < 2 || vals[t - 1] - vals[t] > min_decrease^2)
+      t = t + 1
+      if size(X)[3]-1 == 0
+          grad_beta = 0
+      else
+          grad_beta = 2
+      end
+      
+      alpha = 1 / t
+      beta = beta .- alpha * grad_beta
+      Y_beta = Y .- contract3(X, beta)
+      weights = update_weights(Y_beta, weights.lambda, weights.omega)
+      vals[t] = weights.val
+  end
+  res2 = sc_weight_fw_covariates1(weights.lambda, weights.omega, beta, vals)
+  
+  return res2
+end 

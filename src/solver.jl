@@ -33,7 +33,7 @@ v = rand(5)
 # size(X)
 rand(3, 4, 12)
 contract3(X, nothing)
-X
+
 
 # Frank_wolfe
 

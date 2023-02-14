@@ -1,12 +1,12 @@
 using Statistics
 include("data.jl")
 
-function contract3(X::Array{Float64,3}, v::Vector{Float64}=nothing)::Matrix{Float64}
-  if !isnull(v) && size(X, 3) != length(v)
+function contract3(X::Array{Float64,3}, v::Union{Vector,Nothing}=nothing)::Matrix{Float64}
+  if !isnothing(v) && size(X, 3) != length(v)
     throw(ArgumentError("The length of `v` must match the size of the third dimension of `X`"))
   end
   out = zeros(Float64, size(X, 1), size(X, 2))
-  if isnull(v)
+  if isnothing(v)
     return out
   end
   for ii in eachindex(v)
@@ -14,10 +14,26 @@ function contract3(X::Array{Float64,3}, v::Vector{Float64}=nothing)::Matrix{Floa
   end
   return out
 end
-# X = reshape(reverse(1:27), (3, 3, 3))
-# v = 1:3
+function contract3(X, v::Union{Vector,Nothing}=nothing)::Matrix{Float64}
+  if !isnothing(v) && size(X, 3) != length(v)
+    throw(ArgumentError("The length of `v` must match the size of the third dimension of `X`"))
+  end
+  out = zeros(Float64, size(X, 1), size(X, 2))
+  if isnothing(v)
+    return out
+  end
+  for ii in eachindex(v)
+    out .+= v[ii] * X[:, :, ii]
+  end
+  return out
+end
 
-# contract3(X, v)
+X = rand(3, 4, 5)
+v = rand(5)
+# size(X)
+rand(3, 4, 12)
+contract3(X, nothing)
+X
 
 # Frank_wolfe
 

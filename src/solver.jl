@@ -1,6 +1,9 @@
 using Statistics
 include("data.jl")
 
+
+X = data("CPS")
+
 function contract3(X::Array{Float64,3}, v::Union{Vector,Nothing}=nothing)::Matrix{Float64}
   if !isnothing(v) && size(X, 3) != length(v)
     throw(ArgumentError("The length of `v` must match the size of the third dimension of `X`"))

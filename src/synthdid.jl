@@ -128,10 +128,14 @@ function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...
   return estimate
 end
 
+sc_estimate(setup.Y, setup.N0, setup.T0).estimate
+
 function did_estimate(Y, N0, T0; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("lambda" => fill(1 / T0, T0), "omega" => fill(1 / N0, N0)), kargs...)
+  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => nothing), kargs...)
   return estimate
 end
+
+did_estimate(setup.Y, setup.N0, setup.T0).estimate
 
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)
   setup = estimate.setup

@@ -1,7 +1,5 @@
 using Statistics, DataFrames, Distributions
-# N0, T0 = 3, 4
 include("./data.jl")
-# Y = reshape(1:100, 10, 10)
 
 function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
   N, T = size(Matrix(Y))
@@ -13,7 +11,6 @@ function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
   bottom_matrix = hcat(bottom_col_mean, bottom)
   return vcat(head_matrix, bottom_matrix)
 end
-# collapse_form(Y, N0, T0)
 
 # function pairwise_sum_decreasing(x::Vector{Number}, y::Vector{Number})
 function pairwise_sum_decreasing(x::Vector, y::Vector)
@@ -25,14 +22,6 @@ function pairwise_sum_decreasing(x::Vector, y::Vector)
   pairwise_sum[na_x.&na_y] .= NaN
   return pairwise_sum
 end
-# x = [1,NaN, 2 , 3, 5]
-# y = [10,NaN , 30, 40, 50]
-
-# na_x = isnan.(x)
-# x[na_x] = 12
-# minimum(x[.!na_x])
-# pairwise_sum_decreasing(x, y)
-
 
 mutable struct panelMatrix
   Y::Array
@@ -63,7 +52,6 @@ function panel_matrices(panel::DataFrame;
 
   Y = reshape(panel[:, outcome], num_years, num_units)'
   W = reshape(panel[:, treatment], num_years, num_units)'
-  # panel = data("california_prop99")
 
   w = sum(W, dims=2)
   w = [x > 0 for x in w]
@@ -71,25 +59,14 @@ function panel_matrices(panel::DataFrame;
   treat_time = any(W, dims=1)
   T0 = ([i for i in 1:length(treat_time) if treat_time[i]] |> first) - 1
 
-  # if !(all(W[.!w, :] .== 0) && all(W[:, 1:T0] .== 0) && all(W[w, (T0+1):size(Y, 2)] .== 1))
-  #     throw("The package cannot use this data. Treatment adoption is not simultaneous.")
-  # end
-
   unit_order = if treated_last
     sortperm(W[:, T0+1])
   else
     collect(1:size(Y, 1))
   end
-
-
   panel = panelMatrix(Y[unit_order, :], W[unit_order, :], unique_units, unique_years, N0, T0)
   return panel
 end
-
-setup = data("california_prop99")
-
-setup1 = panel_matrices(setup)
-setup1.Y
 
 mutable struct random_walk
   Y::Matrix
@@ -128,8 +105,3 @@ function random_low_rank()
   random_data = random_walk(Y, n0, t0, mu)
   return random_data
 end
-
-# s = random_low_rank();
-
-# panel1 = panel_matrices(data("california_prop99"));
-# panel1.Y

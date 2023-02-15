@@ -1,12 +1,12 @@
 using Statistics
 include("data.jl")
 
-function contract3(X::Array{Float64,3}, v::Vector{Float64}=nothing)::Matrix{Float64}
-  if !isnull(v) && size(X, 3) != length(v)
+function contract3(X::Array{Float64,3}, v::Union{Vector,Nothing}=nothing)::Matrix{Float64}
+  if !isnothing(v) && size(X, 3) != length(v)
     throw(ArgumentError("The length of `v` must match the size of the third dimension of `X`"))
   end
   out = zeros(Float64, size(X, 1), size(X, 2))
-  if isnull(v)
+  if isnothing(v)
     return out
   end
   for ii in eachindex(v)
@@ -135,7 +135,7 @@ mutable struct update_weights1
   err_omega
 end
 
-function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims(Y)+1),
+function sc_weight_fw_covariates(Y::Matrix; X = cat(zeros(size(Y)), dims = ndims(Y)+1),
                                   zeta_lambda = 0, zeta_omega = 0,
                                   lambda_intercept = true, omega_intercept = true,
                                   min_decrease = 1e-3, max_iter = 1000,
@@ -160,6 +160,9 @@ function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims
   end;
   if isnothing(beta)
       beta = repeat([0.0], size(X)[3]-1)
+      if isempty(beta)
+          beta = nothing
+      end
   end
   
   function update_weights(Y, lambda, omega)
@@ -173,7 +176,7 @@ function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims
           Y_lambda = Y[1:N0,:]
       end
       if update_lambda 
-          lambda = fw_step(Y_lambda[:, 1:T0], lambda, Y_lambda[:,T0+1], N0 * real(zeta_lambda^2))
+          lambda = fw_step(Y_lambda[:, 1:T0], lambda, b = Y_lambda[:,T0+1], eta = N0 * real(zeta_lambda^2))
       end
       err_lambda = Y_lambda * vcat(lambda, -1);
 
@@ -186,7 +189,7 @@ function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims
           Y_omega = Matrix(Y[:, 1:T0])'
       end
       if update_omega
-          omega = fw_step(Y_omega[:, 1:N0], omega, Y_omega[:,N0+1], N0 * real(zeta_omega^2))
+          omega = fw_step(Y_omega[:, 1:N0], omega, b = Y_omega[:,N0+1], eta = N0 * real(zeta_omega^2))
       end
       err_omega = Y_omega * vcat(omega, -1)
       val = real(zeta_omega.^2) * sum(omega.^2) + real(zeta_lambda.^2) * sum(lambda.^2) + sum(err_omega.^2) / T0 .+ sum(err_lambda.^2) ./ N0
@@ -206,11 +209,17 @@ function sc_weight_fw_covariates(Y::Matrix, X = cat(zeros(size(Y)), dims = ndims
       if size(X)[3]-1 == 0
           grad_beta = 0
       else
-          grad_beta = 2
+          grad_beta = print("error in  while t < max_iter && (t < 2 || vals[t - 1] - vals[t] > min_decrease^2)")
       end
       
       alpha = 1 / t
+  
+      if isnothing(beta)
+          beta = 0
+      end
+      
       beta = beta .- alpha * grad_beta
+      beta = nothing
       Y_beta = Y .- contract3(X, beta)
       weights = update_weights(Y_beta, weights.lambda, weights.omega)
       vals[t] = weights.val

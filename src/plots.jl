@@ -6,6 +6,13 @@ function synthdid_plot(estimates::synthdid_est1, treated_name="treated", control
   spaghetti_line_width=2, spaghetti_label_size=2,
   spaghetti_line_alpha=3, spaghetti_label_alpha=5,
   se_method="jackknife", alpha_multiplier=nothing)
+
+  multiple_frames = length(overlay)
+
+  #-----
+  treated = 1
+  control = 1
+
 end
 
 

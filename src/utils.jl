@@ -1,5 +1,6 @@
-using Statistics, DataFrames
+using Statistics, DataFrames, Distributions
 # N0, T0 = 3, 4
+include("./data.jl")
 # Y = reshape(1:100, 10, 10)
 
 function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
@@ -85,7 +86,10 @@ function panel_matrices(panel::DataFrame;
   return panel
 end
 
-using Distributions
+setup = data("california_prop99")
+
+setup1 = panel_matrices(setup)
+setup1.Y
 
 mutable struct random_walk
   Y::Matrix

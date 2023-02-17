@@ -37,3 +37,10 @@ function placebo_se(estimate, replications)
     end
     sqrt((replications-1)/replications) * std(a)
 end
+
+function vcov_synthdid_estimate(object; method = ["bootstrap", "jackknife", "placebo"], replications = 200)
+    if method == "placebo"
+        se = placebo_se(object, replications)
+    end
+    se^2
+end

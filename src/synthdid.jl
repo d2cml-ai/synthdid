@@ -36,9 +36,9 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   sparsify::Function=sparsify_function,
   max_iter_pre_sparsify::Int=100)
 
-  if (!(size(Y)[1] > N0) || !(size(Y)[2] > T0) || !(length(size(X)) == 2 || length(size(X)) == 3) || !(size(X)[1:2] == size(Y)) || !(isa(weights, Dict)) 
-    || !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) || !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
-    || !(!(isnothing(weights["lambda"])) || (update_lambda)) || !((!isnothing(weights["omega"]) || (update_omega))))
+  if (!(size(Y)[1] > N0) && !(size(Y)[2] > T0) && !(length(size(X)) == 2 || length(size(X)) == 3) & !(size(X)[1:2] == size(Y)) && !(isa(weights, Dict)) 
+    && !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) && !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
+    && !(!(isnothing(weights["lambda"])) || (update_lambda)) && !((!isnothing(weights["omega"]) || (update_omega))))
 
     error("error at !(size(Y)[1] > N0) || !(size(Y)[2] > T0) || ... in synthdid_estimate function")
   else

@@ -1,0 +1,88 @@
+---
+title: Synthdid
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(
+	cache = T
+	)
+```
+
+# Synthdid
+
+```{r}
+library(synthdid)
+library(tidyverse)
+set.seed(12345)
+```
+
+## California prop 99
+
+```{r}
+data("california_prop99")
+setup = panel.matrices(california_prop99)
+tau.hat = synthdid_estimate(setup$Y, setup$N0, setup$T0)
+print(summary(tau.hat))
+```
+
+### Plots
+
+```{r}
+plot(tau.hat, se.method='placebo')
+```
+### The control unit contrinution plot
+
+```{r}
+synthdid_units_plot(tau.hat, se.method='placebo')
+```
+
+### Checking for pre_treatment parallel trends
+
+```{r}
+plot(tau.hat, overlay=1,  se.method='placebo')
+```
+
+```{r}
+plot(tau.hat, overlay=.8, se.method='placebo')
+```
+
+# Compare to other estimators
+
+```{r}
+tau.sc   = sc_estimate(setup$Y, setup$N0, setup$T0)
+tau.did  = did_estimate(setup$Y, setup$N0, setup$T0)
+estimates = list(tau.did, tau.sc, tau.hat)
+names(estimates) = c('Diff-in-Diff', 'Synthetic Control', 'Synthetic Diff-in-Diff')
+```
+
+```{r}
+print(unlist(estimates))
+```
+
+```{r fig.width=7, fig.height=4}
+synthdid_plot(estimates, se.method='placebo')
+```
+
+```{r fig.width=15, fig.height=5}
+synthdid_units_plot(estimates, se.method='placebo')
+```
+
+
+## Customize plots
+
+```{r fig.width=15, fig.height=5}
+synthdid_plot(estimates, facet.vertical=FALSE, 
+              control.name='control', treated.name='california', 
+              lambda.comparable=TRUE, se.method = 'none', 
+              trajectory.linetype = 1, line.width=.75, effect.curvature=-.4,
+              trajectory.alpha=.7, effect.alpha=.7, 
+              diagram.alpha=1, onset.alpha=.7) + 
+    theme(legend.position=c(.26,.07), legend.direction='horizontal', 
+          legend.key=element_blank(), legend.background=element_blank(),
+          strip.background=element_blank(), strip.text.x = element_blank())
+synthdid_units_plot(estimates, se.method='none') + 
+    theme(legend.background=element_blank(), legend.title = element_blank(), 
+          legend.direction='horizontal', legend.position=c(.17,.07), 
+          strip.background=element_blank(), strip.text.x = element_blank())
+```

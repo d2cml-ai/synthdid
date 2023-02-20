@@ -1,29 +1,18 @@
-include("utils.jl")
-include("solver.jl")
-
-# function sparsify_function(v::Vector{Number})
-function sparsify_function(v::Vector)
-  v[v.<=maximum(v)/4] .= 0
-  return v ./ sum(v)
-end
-
-
 mutable struct synthdid_est1
   estimate::Float64
   weight
   setup
   opts
 end
+synthdid_est1(21, 31, 4, 5,)
 
-
-
+function sparsify_function(v::Vector)
+  v[v.<=maximum(v)/4] .= 0
+  return v ./ sum(v)
+end
 
 function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
-<<<<<<< HEAD
   X::Array=Array{Any,3}(undef, size(Y, 1), size(Y, 2), 0),
-=======
-  X::Array=Array{Float64,3}(undef, size(Y, 1), size(Y, 2), 0),
->>>>>>> solver
   # X = zeros([size(Y, 1), size(Y, 2), 0])
   noise_level::Float64=std(diff(Y[1:N0, 1:T0], dims=2)),
   eta_omega::Float64=((size(Y, 1) - N0) * (size(Y, 2) - T0))^(1 / 4),
@@ -39,23 +28,17 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   max_iter::Int=10000,
   sparsify::Function=sparsify_function,
   max_iter_pre_sparsify::Int=100)
-<<<<<<< HEAD
-=======
-
-  if (!(size(Y)[1] > N0) && !(size(Y)[2] > T0) && !(length(size(X)) == 2 || length(size(X)) == 3) & !(size(X)[1:2] == size(Y)) && !(isa(weights, Dict)) 
-    && !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) && !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
-    && !(!(isnothing(weights["lambda"])) || (update_lambda)) && !((!isnothing(weights["omega"]) || (update_omega))))
+  if (!(size(Y)[1] > N0) && !(size(Y)[2] > T0) && !(length(size(X)) == 2 || length(size(X)) == 3) & !(size(X)[1:2] == size(Y)) && !(isa(weights, Dict))
+      && !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) && !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
+      && !(!(isnothing(weights["lambda"])) || (update_lambda)) && !((!isnothing(weights["omega"]) || (update_omega))))
 
     error("error at !(size(Y)[1] > N0) || !(size(Y)[2] > T0) || ... in synthdid_estimate function")
   else
     "continue"
   end
->>>>>>> solver
-
 
   N1 = size(Y, 1) - N0
   T1 = size(Y, 2) - T0
-  # X = Array{Any,3}(undef, size(Y, 1), size(Y, 2), 0)
 
   if length(size(X)) == 3
     weights["vals"] = nothing
@@ -95,15 +78,7 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
     YC = collapse_form(Y, N0, T0)
     Xc = [collapse_form(Xi, N0, T0) for Xi in eachslice(X, dims=3)]
     Yc = collapsed.form(Y, N0, T0)
-    # Xc = apply(X, 3, function(Xi) { collapsed.form(Xi, N0, T0) })
-    # dim(Xc) = c(dim(Yc), dim(X)[3])
-    # weights = sc.weight.fw.covariates(Yc, Xc, zeta.lambda = zeta.lambda, zeta.omega = zeta.omega,
-    #   lambda.intercept = lambda.intercept, omega.intercept = omega.intercept,
-    #   min.decrease = min.decrease, max.iter = max.iter,
-    #   lambda = weights$lambda, omega = weights$omega, update.lambda = update.lambda, update.omega = update.omega)
-
   end
-  # X_beta = contract3(X, weights$beta)
 
   weights["beta"] = nothing
   X_beta = contract3(X, weights["beta"])
@@ -111,10 +86,7 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   b = vcat(-weights["lambda"], fill(1 / T1, T1))
 
   estimate = a * (Y .- X_beta) * b
-  # estimate = t(c(-weights$omega, rep(1 / N1, N1))) % * % (Y - X.beta) % * % c(-weights$lambda, rep(1 / T1, T1))
-  # estimate = (vcat([-weights["omega"], fill(1 / N1, N1)],) * (Y .- X_beta) * vcat([-weights["lambda"], fill(1 / T1, T1)]))'
   setup = Dict("Y" => Y, "X" => X, "N0" => N0, "T0" => T0)
-  #  "X_beta" => X_beta
   opts = Dict(
     "zeta_omega" => zeta_omega,
     "zeta_lambda" => zeta_lambda,
@@ -128,47 +100,33 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   return synthdid_est1(estimate, weights, setup, opts)
 end
 
-<<<<<<< HEAD
-setup = panel_matrices(data("california_prop99"));
 
-algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
-
-algo.estimate
-=======
 # setup = panel_matrices(data("california_prop99"));
 
 # algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
 
 # algo.estimate
->>>>>>> solver
 
-function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...
-)
+function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
   estimate = synthdid_estimate(Y, N0, T0,
     weights=Dict("lambda" => fill(1 / T0, T0), "omega" => nothing),
     omega_intercept=false, eta_omega=eta_omega, kargs...)
   estimator = "sc_estimate"
-  # return (estimate=estimate, estimator=estimator)
   return estimate
 end
 
-<<<<<<< HEAD
-sc_estimate(setup.Y, setup.N0, setup.T0).estimate
-=======
+
 # sc_estimate(setup.Y, setup.N0, setup.T0).estimate
->>>>>>> solver
 
 function did_estimate(Y, N0, T0; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => nothing), kargs...)
+  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0)), kargs...)
   return estimate
 end
 
-<<<<<<< HEAD
-did_estimate(setup.Y, setup.N0, setup.T0).estimate
-=======
 # did_estimate(setup.Y, setup.N0, setup.T0).estimate
->>>>>>> solver
+# did_estimate(setup.Y, setup.N0, setup.T0).estimate
 
+# TODO: synthdid_placebo, synthdid_effect_curve
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)
   setup = estimate.setup
   opts = estimate.opts
@@ -180,12 +138,8 @@ function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)
     terated_fraction = 1 - setup["T0"] / size(setup.Y, 2)
   end
   placebo_t0 = floor(setup["T0"] * (1 - terated_fraction))
-  # function_args = [:Y => setup[:Y][:, 1:setup[:T0]], :N0 => setup[:N0], :T0 => placebo.T0, :X => setup[:X][:, 1:setup[:T0],]]
-  # function_args = merge(function_args, opts)
-
-  # estimator(function_args...)
-
 end
+
 function synthdid_effect_curve(estimate::synthdid_est1)
   setup = estimate.setup
   weights = estimate.weight

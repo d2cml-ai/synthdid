@@ -504,6 +504,12 @@ git-tree-sha1 = "503688b59397b3307443af35cd953a13e8005c16"
 uuid = "1277b4bf-5013-50f5-be3d-901d8477a67a"
 version = "2.0.0"
 
+[[Shuffle]]
+deps = ["Random"]
+git-tree-sha1 = "b812fb30d6d8b295b71dd5a4102d1ae7b60698e3"
+uuid = "bf21e494-c40e-4daa-abfb-de5ec0aad010"
+version = "0.1.1"
+
 [[SnoopPrecompile]]
 deps = ["Preferences"]
 git-tree-sha1 = "e760a70afdcd461cf01a575947738d359234665c"
@@ -603,7 +609,7 @@ version = "1.10.0"
 [[Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
-version = "1.10.1"
+version = "1.10.0"
 
 [[Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]

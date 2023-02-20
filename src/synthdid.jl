@@ -19,7 +19,11 @@ end
 
 
 function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
+<<<<<<< HEAD
   X::Array=Array{Any,3}(undef, size(Y, 1), size(Y, 2), 0),
+=======
+  X::Array=Array{Float64,3}(undef, size(Y, 1), size(Y, 2), 0),
+>>>>>>> solver
   # X = zeros([size(Y, 1), size(Y, 2), 0])
   noise_level::Float64=std(diff(Y[1:N0, 1:T0], dims=2)),
   eta_omega::Float64=((size(Y, 1) - N0) * (size(Y, 2) - T0))^(1 / 4),
@@ -35,6 +39,18 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   max_iter::Int=10000,
   sparsify::Function=sparsify_function,
   max_iter_pre_sparsify::Int=100)
+<<<<<<< HEAD
+=======
+
+  if (!(size(Y)[1] > N0) && !(size(Y)[2] > T0) && !(length(size(X)) == 2 || length(size(X)) == 3) & !(size(X)[1:2] == size(Y)) && !(isa(weights, Dict)) 
+    && !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) && !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
+    && !(!(isnothing(weights["lambda"])) || (update_lambda)) && !((!isnothing(weights["omega"]) || (update_omega))))
+
+    error("error at !(size(Y)[1] > N0) || !(size(Y)[2] > T0) || ... in synthdid_estimate function")
+  else
+    "continue"
+  end
+>>>>>>> solver
 
 
   N1 = size(Y, 1) - N0
@@ -112,11 +128,19 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   return synthdid_est1(estimate, weights, setup, opts)
 end
 
+<<<<<<< HEAD
 setup = panel_matrices(data("california_prop99"));
 
 algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
 
 algo.estimate
+=======
+# setup = panel_matrices(data("california_prop99"));
+
+# algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
+
+# algo.estimate
+>>>>>>> solver
 
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...
 )
@@ -128,14 +152,22 @@ function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...
   return estimate
 end
 
+<<<<<<< HEAD
 sc_estimate(setup.Y, setup.N0, setup.T0).estimate
+=======
+# sc_estimate(setup.Y, setup.N0, setup.T0).estimate
+>>>>>>> solver
 
 function did_estimate(Y, N0, T0; kargs...)
   estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => nothing), kargs...)
   return estimate
 end
 
+<<<<<<< HEAD
 did_estimate(setup.Y, setup.N0, setup.T0).estimate
+=======
+# did_estimate(setup.Y, setup.N0, setup.T0).estimate
+>>>>>>> solver
 
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)
   setup = estimate.setup

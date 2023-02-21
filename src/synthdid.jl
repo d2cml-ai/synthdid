@@ -102,11 +102,7 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
 end
 
 
-# setup = panel_matrices(data("california_prop99"));
 
-# algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
-
-# algo.estimate
 
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
   estimate = synthdid_estimate(Y, N0, T0,
@@ -117,15 +113,12 @@ function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
 end
 
 
-# sc_estimate(setup.Y, setup.N0, setup.T0).estimate
 
 function did_estimate(Y, N0, T0; kargs...)
   estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0)), kargs...)
   return estimate
 end
 
-# did_estimate(setup.Y, setup.N0, setup.T0).estimate
-# did_estimate(setup.Y, setup.N0, setup.T0).estimate
 
 # TODO: synthdid_placebo, synthdid_effect_curve
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)

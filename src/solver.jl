@@ -77,24 +77,6 @@ function sc_weight_fw(
   Dict("lambda" => lambda, "vals" => vals)
 end;
 
-# TODO: sc.weigth.fw.covariates
-
-
-mutable struct sc_weight_fw_covariates1
-  lambda
-  omega
-  beta
-  vals
-end
-
-mutable struct update_weights1
-  val
-  lambda
-  omega
-  err_lambda
-  err_omega
-end
-
 mutable struct sc_weight_fw_covariates1
   lambda
   omega

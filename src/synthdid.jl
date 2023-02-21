@@ -102,15 +102,16 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
 end
 
 
+# summary_synth(synthdid_estimate(Y, N0, T0, eta_omega = 1e-16), panel = setup_data);
 
 
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0,
-    weights=Dict("lambda" => fill(1 / T0, T0), "omega" => nothing),
-    omega_intercept=false, eta_omega=eta_omega, kargs...)
-  estimator = "sc_estimate"
+
+  estimate = synthdid_estimate(Y, N0, T0, eta_omega=1e-16, omega_intercept=false,
+    weights=Dict("omega" => nothing, "lambda" => fill(0, T0), "vals" => [1, 2, 3.0]))
   return estimate
 end
+
 
 
 
@@ -118,6 +119,8 @@ function did_estimate(Y, N0, T0; kargs...)
   estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0)), kargs...)
   return estimate
 end
+
+
 
 
 # TODO: synthdid_placebo, synthdid_effect_curve

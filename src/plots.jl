@@ -192,8 +192,6 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 end
 
-
-
 function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo", negligible_alpha::Float64=0.3, negligible_threshold::Float64=0.001, x_ticks=nothing)
   est = estimate
 
@@ -252,14 +250,8 @@ function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo
   return p
 end
 
-
-
-
-
-function synthdid_placebo_plot(estimate::synthdid_est1)
-
-end
-
+# function synthdid_placebo_plot(estimate::synthdid_est1)
+# end
 
 function synthdid_rmse_plot(estimate::synthdid_est1)
   rmse = sqrt.(estimate.weight["vals"])

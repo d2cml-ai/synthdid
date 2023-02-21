@@ -11,13 +11,13 @@ include("vcov.jl")
 include("plots.jl")
 include("summary.jl")
 
-setup_data = panel_matrices(data("california_prop99"));
+# setup_data = panel_matrices(data("california_prop99"));
 
-Y = setup_data.Y;
-N0 = setup_data.N0;
-T0 = setup_data.T0;
+# Y = setup_data.Y;
+# N0 = setup_data.N0;
+# T0 = setup_data.T0;
 
-tau_hat = synthdid_estimate(Y, N0, T0);
+# tau_hat = synthdid_estimate(Y, N0, T0);
 
-summary_synth(tau_hat, panel=setup_data);
-synthdid_plot(tau_hat)["plot"]
+# summary_synth(tau_hat, panel=setup_data);
+# synthdid_plot(tau_hat)["plot"]

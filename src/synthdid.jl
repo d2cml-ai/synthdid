@@ -105,22 +105,23 @@ end
 
 
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0,
-    weights=Dict("lambda" => fill(1 / T0, T0), "omega" => nothing),
-    omega_intercept=false, eta_omega=eta_omega, kargs...)
-  estimator = "sc_estimate"
+
+  estimate = synthdid_estimate(Y, N0, T0, eta_omega=1e-16, omega_intercept=false,
+    weights=Dict("omega" => nothing, "lambda" => fill(0, T0), "vals" => [1, 2, 3.0]))
   return estimate
 end
 
 
 
 function did_estimate(Y, N0, T0; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0)), kargs...)
+  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0), "vals" => [1, 2, 3.0]), kargs...)
   return estimate
 end
 
 
-# TODO: synthdid_placebo, synthdid_effect_curve
+
+
+# TODO: synthdid_placebo
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)
   setup = estimate.setup
   opts = estimate.opts
@@ -139,10 +140,11 @@ function synthdid_effect_curve(estimate::synthdid_est1)
   weights = estimate.weight
   x_beta = contract3(setup["X"], weights["beta"])
 
-  N1 = size(setup.Y, 1) - setup.N0
-  T1 = size(setup.Y, 2) - setup.T0
+  N1 = size(setup["Y"], 1) - estimate.N0
+  T1 = size(setup["Y"], 2) - estimate.T0
 
-  tau_sc = hcat(-weights["omega"], fill(1 / N1, N1))' * (setup.Y - x_beta)
-  tau_curve = tau_sc[setup["T0"].+(1:T1)] .- (tau_sc[1:setup["T0"]] * weights["lambda"])
+  tau_sc = vcat(-weights["omega"], fill(1 / N1, N1))' * (setup["Y"] .- x_beta)
+  tau_curve = tau_sc[setup["T0"].+(1:T1)] .- (tau_sc[1:setup["T0"]]' * weights["lambda"])
   return tau_curve
 end
+

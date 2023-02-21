@@ -1,3 +1,4 @@
-*.html linguist-vendored
-*.ipynb linguist-vendored
-*.r linguist-vendored
+*.ipynb linguist-detectable=false
+*.html linguist-detectable=false
+*.R linguist-detectable=false
+

@@ -1,7 +1,6 @@
 ---
-title: "synthdid"
+title: synthdid
 ---
-
 
 
 # synthdid: Synthetic Difference in Differences Estimation
@@ -20,17 +19,15 @@ This package is currently in beta and the functionality and interface is subject
 
 # Example
 
-```julia
+```julia; eval = false
 using Pkg
 Pkg.add("synthdid")
 using synthdid
 ```
 
+```julia; echo = false
+include("./src/setup.jl")
 ```
-0.000655 seconds (347 allocations: 21.531 KiB)
-synthdid_rmse_plot (generic function with 1 method)
-```
-
 
 
 ```julia
@@ -39,21 +36,11 @@ tau_hat = synthdid_estimate(setup_data.Y, setup_data.N0, setup_data.T0)
 print(tau_hat.estimate)
 ```
 
-```
--15.603827872733847
-```
-
-
-
 ```julia
 p = synthdid_plot(tau_hat)
 plot(p["plot"])
 ```
 
-![](figures/README_4_1.png)
-
 ```julia
 synthdid_units_plot(tau_hat, x_ticks = setup_data.names)
 ```
-
-![](figures/README_5_1.png)

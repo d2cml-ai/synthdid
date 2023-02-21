@@ -1,5 +1,5 @@
-@time include("./vcov.jl")
-@time include("./setup.jl")
+# @time include("./vcov.jl")
+# @time include("./setup.jl")
 @time using Plots
 function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control_name="Synthetic control",
   treated_color="#043e7c", control_color="#d8450a",

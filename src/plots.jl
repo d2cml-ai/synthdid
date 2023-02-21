@@ -2,6 +2,7 @@
 @time include("./setup.jl")
 @time using Plots
 function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control_name="Synthetic control",
+  treated_color="#043e7c", control_color="#d8450a",
   year_unit_trayectory=nothing,
   facet=nothing, lambda_comparable=!isnothing(facet), overlay=0,
   lambda_plot_scale=3, line_width=1, guide_linetype=:dash, point_size=3,
@@ -88,9 +89,9 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 
   # treated_name = "Treated"
-  treat_color = "#d8450a"
+  # treated_color = "#d8450a"
   # control_name = "Synthetic control"
-  synt_color = "#043e7c"
+  # control_color = "#043e7c"
 
   lines = DataFrame(
     y=hcat(obs_trayectory, syn_trayectory)'[:, 1],
@@ -105,14 +106,14 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
     x=[post_time, post_time],
     y=[treated_post, sdid_post],
     label=[treated_name, control_name],
-    color=[treat_color, synt_color]
+    color=[treated_color, control_color]
   )
 
   did_points = DataFrame(
     x=[pre_time, pre_time, post_time, post_time],
     y=[treated_pre, control_pre, control_post, treated_post],
     label=[treated_name, control_name, control_name, treated_name],
-    color=[treat_color, synt_color, synt_color, treat_color]
+    color=[treated_color, control_color, control_color, treated_color]
   )
 
   hallucinated_segments = DataFrame(
@@ -129,7 +130,7 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
   arrow_df = DataFrame(
     x=[post_time, post_time],
     y=[sdid_post, treated_post],
-    color=synt_color
+    color=control_color
   )
 
   if lambda_comparable
@@ -157,8 +158,8 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 
   p = plot()
-  plot!(time, obs_trayectory', label="Treated", color=treat_color, linewidth=trayectory_linewidth)
-  plot!(time, syn_trayectory', label="Synthetic control", color=synt_color, linewidth=trayectory_linewidth)
+  plot!(time, obs_trayectory', label="Treated", color=treated_color, linewidth=trayectory_linewidth)
+  plot!(time, syn_trayectory', label="Synthetic control", color=control_color, linewidth=trayectory_linewidth)
   scatter!(points.x, points.y, label="", color=points.color, ms=point_size, alpha=diagram_alpha)
   scatter!(did_points.x, did_points.y, color=did_points.color, label="", ms=point_size, alpha=diagram_alpha)
   plot!(hallucinated_segments.x, hallucinated_segments.y, color="black", label="", line=guide_linetype, linewidth=line_width)
@@ -171,12 +172,12 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
     plot!(df_algo.x, df_algo.y, label="", color="black", line=guide_linetype, linewidth=line_width)
   end
   plot!()
-  plot!(arrow_df.x, arrow_df.y, color=synt_color, arrow=(0.5, 0.1), line_width=0.1, label="")
-  plot!(ribbons.x, ribbons.y, fillrange=bottom, color=synt_color, label="")
-  plot!(ribbons.x, ribbons.y, color=treat_color, label="", linewidth=line_width)
+  plot!(arrow_df.x, arrow_df.y, color=control_color, arrow=(0.5, 0.1), line_width=0.1, label="")
+  plot!(ribbons.x, ribbons.y, fillrange=bottom, color=control_color, label="")
+  plot!(ribbons.x, ribbons.y, color=treated_color, label="", linewidth=line_width)
   vline!([T0s], color="black", alpha=0.4, label="")
-  xlabel!("Time")
-  ylabel!("Trayectory")
+  # xlabel!("Time")
+  # ylabel!("Trayectory")
 
   plot_description = Dict(
     "lines" => lines,
@@ -193,14 +194,78 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 end
 
+setup1 = panel_matrices(data("california_prop99"))
 
-setup = panel_matrices(data("california_prop99"))
-est = synthdid_estimate(setup.Y, setup.N0, setup.T0)
+est = synthdid_estimate(setup1.Y, setup1.N0, setup1.T0);
+x_ticks = setup1.names
 
-s = synthdid_plot(est, se_method="jackknife", overlay=1)
 
-s["plot"]
+function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo", negligible_alpha::Float64=0.3, negligible_threshold::Float64=0.001, x_ticks=nothing)
+  est = estimate
 
+  setup, weights, N0, T0 = est.setup, est.weight, est.N0, est.T0
+
+  Y = setup["Y"] - contract3(setup["X"], weights["beta"])
+
+  N1, T1 = size(Y) .- (N0, T0)
+
+  lambda_pre = vcat(weights["lambda"], fill(0, T1))
+  lambda_post = vcat(zeros(T0), fill(1 / T1, T1))
+
+  omega_control = vcat(weights["omega"], zeros(N1))
+  omega_treat = vcat(zeros(N0), fill(1 / N1, N1))
+
+  difs = omega_treat' * Y * (lambda_post .- lambda_pre) .- Y[1:N0, :] * (lambda_post .- lambda_pre)
+
+
+  se = if isnothing(se_method)
+    NaN
+  else
+    sqrt(vcov_synthdid_estimate(est, method=se_method))
+  end
+
+  include_units = if isnothing(x_ticks)
+    1:N0
+  else
+    1:N0
+  end
+
+  est_imate = est.estimate
+
+  plot_data = DataFrame(
+    y=difs[include_units],
+    x=include_units,
+    weights=omega_control[include_units],
+    estimate=est_imate,
+    se=se
+  )
+  plot_data1 = filter(x -> x.weights > negligible_threshold, plot_data)
+  plot_data2 = filter(x -> x.weights <= negligible_threshold, plot_data)
+
+  p = plot()
+
+  scatter!(plot_data1.x, plot_data1.y, ms=plot_data1.weights * 120, color="black", label="")
+  scatter!(plot_data2.x, plot_data2.y, ms=plot_data2.weights * 120, color="black", label="", alpha=negligible_alpha,)
+  hline!([est_imate], color="#000000", label="")
+  if !isnan(se)
+    hline!([est_imate - 1.96 * se], color="#000000", line=:dash, label="")
+    hline!([est_imate + 1.96 * se], color="#000000", line=:dash, label="")
+  end
+
+  if !isnothing(x_ticks)
+    xticks!(plot_data.x, x_ticks[include_units], rotation=90)
+  end
+  return p
+end
+
+synthdid_units_plot(est)
+
+
+
+
+function sytndid_units_plot(estimate::synthdid_est1)
+
+end
 
 
 

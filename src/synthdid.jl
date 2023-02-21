@@ -1,10 +1,11 @@
 mutable struct synthdid_est1
   estimate::Float64
-  weight
-  setup
-  opts
+  weight::Any
+  setup::Any
+  opts::Any
+  N0::Int64
+  T0::Int64
 end
-synthdid_est1(21, 31, 4, 5,)
 
 function sparsify_function(v::Vector)
   v[v.<=maximum(v)/4] .= 0
@@ -97,7 +98,7 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
     "min_decrease" => min_decrease,
     "max_iter" => max_iter
   )
-  return synthdid_est1(estimate, weights, setup, opts)
+  return synthdid_est1(estimate, weights, setup, opts, N0, T0)
 end
 
 

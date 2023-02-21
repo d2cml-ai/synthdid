@@ -1,4 +1,4 @@
-using DataFrames, CSV
+
 function data(file::String)
   # path = joinpath(dirname(pathof()))
   # path = pwd() * "\$(file).csv"

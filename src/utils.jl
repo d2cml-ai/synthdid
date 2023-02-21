@@ -1,5 +1,5 @@
-using Statistics, DataFrames, Distributions
-include("./data.jl")
+
+
 
 function collapse_form(Y::Union{DataFrame,Matrix}, N0::Int64, T0::Int64)
   N, T = size(Matrix(Y))

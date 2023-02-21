@@ -1,6 +1,4 @@
-# @time include("./vcov.jl")
-# @time include("./setup.jl")
-@time using Plots
+
 function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control_name="Synthetic control",
   treated_color="#043e7c", control_color="#d8450a",
   year_unit_trayectory=nothing,
@@ -194,10 +192,6 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 end
 
-setup1 = panel_matrices(data("california_prop99"))
-
-est = synthdid_estimate(setup1.Y, setup1.N0, setup1.T0);
-x_ticks = setup1.names
 
 
 function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo", negligible_alpha::Float64=0.3, negligible_threshold::Float64=0.001, x_ticks=nothing)
@@ -258,8 +252,7 @@ function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo
   return p
 end
 
-p = synthdid_units_plot(est)
-p
+
 
 
 
@@ -268,6 +261,14 @@ function synthdid_placebo_plot(estimate::synthdid_est1)
 end
 
 
-function synthdid_rmse_plot(estimate)
+function synthdid_rmse_plot(estimate::synthdid_est1)
+  rmse = sqrt.(estimate.weight["vals"])
 
+  data = DataFrame(rmse=rmse, x=1:length(rmse))
+  p = plot()
+  plot!(data.x, data.rmse, label="estimate")
+  xlabel!("iteration")
+  ylabel!("rmse")
+  print(plot(p))
+  return Dict("data" => data, "plot" => p)
 end

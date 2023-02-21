@@ -1,7 +1,7 @@
 r-synthdid/
 .vscode/
 R/
-
+.html*
 ./src/reference-solver.jl
 src/reference-solver.jl
 js/

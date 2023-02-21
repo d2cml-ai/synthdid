@@ -258,15 +258,8 @@ function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo
   return p
 end
 
-synthdid_units_plot(est)
-
-
-
-
-function sytndid_units_plot(estimate::synthdid_est1)
-
-end
-
+p = synthdid_units_plot(est)
+p
 
 
 
@@ -274,9 +267,6 @@ function synthdid_placebo_plot(estimate::synthdid_est1)
 
 end
 
-function synthdid_placebo_plot(estimate::synthdid_est1)
-
-end
 
 function synthdid_rmse_plot(estimate)
 

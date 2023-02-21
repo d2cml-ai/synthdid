@@ -9,6 +9,7 @@ include("synthdid.jl")
 include("data.jl")
 include("vcov.jl")
 include("plots.jl")
+include("summary.jl")
 
 setup_data = panel_matrices(data("california_prop99"))
 

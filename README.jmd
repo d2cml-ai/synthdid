@@ -33,7 +33,7 @@ include("./src/setup.jl")
 ```julia
 setup_data = panel_matrices(data("california_prop99"))
 tau_hat = synthdid_estimate(setup_data.Y, setup_data.N0, setup_data.T0)
-print(tau_hat.estimate)
+summary_synth(tau_hat, panel = setup_data);
 ```
 
 ```julia

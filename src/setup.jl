@@ -1,3 +1,5 @@
+using DataFrames
+
 include("utils.jl")
 include("solver.jl")
 include("synthdid.jl")

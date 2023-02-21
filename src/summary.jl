@@ -1,30 +1,57 @@
-function synthdid_controls(estimates, sort_by=1, mass=0.9, weight_type="omega")
-  # if (class(estimates) == 'synthdid_estimate') { estimates = list(estimates) }
-  # if (is.null(names(estimates))) { names(estimates) = sprintf('estimate %d', 1:length(estimates)) }
-  # if (!weight.type %in% c('omega', 'lambda')) { stop('weight.type must be "omega" or "lambda"') } 
-  # weights = do.call(cbind, lapply(estimates, function(est) { attr(est, 'weights')[[weight.type]] }))
-  # if (is.null(dim(weights))) { dim(weights) = c(length(weights), 1) }
-
-  # Y = attr(estimates[[1]], 'setup')$Y
-  # o = rev(order(weights[, sort.by]))
-  # tab = weights[o, , drop = FALSE]
-  # rownames(tab) = if(weight.type == 'omega') { rownames(Y)[o] } else { colnames(Y)[o] }
-  # colnames(tab) = names(estimates)
-
-  # # truncate table to retain a weight sum of at least mass for each unit
-  # tab.len = max(apply(tab, 2, function(col) { Position(function(x) { x >= mass }, cumsum(col), nomatch=nrow(tab)) }))
-  # tab[1:tab.len, , drop=FALSE]
+mutable struct summary_synthdid
+  estimate
+  se
+  control
+  periods
 end
 
-# summary.synthdid_estimate = function(object, weight.digits=3, fast=FALSE, ...) {
-#   N0 = attr(object, 'setup')$N0
-#   T0 = attr(object, 'setup')$T0
-#   list(estimate = c(object),
-#     se = sqrt(if(fast) { vcov(object, method = 'jackknife') } else { vcov(object) }),
-#     controls = round(synthdid_controls(object, weight.type='omega'),  digits=weight.digits),
-#     periods  = round(synthdid_controls(object, weight.type='lambda'), digits=weight.digits),
-#     dimensions = c( N1 = nrow(Y(object))-N0, N0 = N0, N0.effective = round(1 / sum(omega(object)^2),  weight.digits),
-# 		    T1 = ncol(Y(object))-T0, T0 = T0, T0.effective = round(1 / sum(lambda(object)^2), weight.digits)))
-# }
+mutable struct dimension
+end
 
-'b'
+
+mutable struct summary_element
+  N1
+  T1
+  N0
+  T0
+  effective
+  data
+end
+
+function synthdid_controls(estimates; desc=true, weight_type="omega", panel)
+  weight = estimates.weight[weight_type]
+  eff = 1 / sum(weight .^ 2)
+  n0 = estimates.N0
+  t0 = estimates.T0
+  Y = estimates.setup["Y"]
+  n1, t1 = size(Y) .- (n0, t0)
+
+  time = panel.time
+
+  info_weight = DataFrame(weight=weight)
+  if weight_type != "omega"
+    info_weight.time = time[1:t0]
+    sort!(info_weight, :weight, rev=desc)
+    filter!(x -> x.weight != 0, info_weight)
+  else
+    info_weight = sort!(info_weight, :weight, rev=desc)[1:Int(floor(size(info_weight, 1) / 2)), :]
+    filter!(x -> x.weight != 0, info_weight)
+  end
+  return summary_element(n1, t1, n0, t0, eff, info_weight)
+end
+
+
+function summary_synth(estimates::synthdid_est1; panel, print_all=false)
+  estimate = estimates.estimate
+  # panel_matrices = panel_matrices
+  se = vcov_synthdid_estimate(estimates)
+  control = synthdid_controls(estimates, panel=panel)
+  periods = synthdid_controls(estimates, weight_type="lambda", panel=panel)
+
+  if print_all
+    print(control.data)
+    print(periods.data)
+  end
+  summary_synthdid(estimate, se, control, periods)
+end
+

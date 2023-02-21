@@ -25,7 +25,7 @@ Pkg.add("synthdid")
 using synthdid
 ```
 
-```julia; echo = false
+```julia; echo = false; include = false
 include("./src/setup.jl")
 ```
 

@@ -5,9 +5,6 @@ mutable struct summary_synthdid
   periods
 end
 
-mutable struct dimension
-end
-
 
 mutable struct summary_element
   N1
@@ -41,17 +38,27 @@ function synthdid_controls(estimates; desc=true, weight_type="omega", panel)
 end
 
 
-function summary_synth(estimates::synthdid_est1; panel, print_all=false)
+function summary_synth(estimates::synthdid_est1, print_result=true; panel, print_all=false, round_digits=3)
   estimate = estimates.estimate
   # panel_matrices = panel_matrices
   se = vcov_synthdid_estimate(estimates)
   control = synthdid_controls(estimates, panel=panel)
   periods = synthdid_controls(estimates, weight_type="lambda", panel=panel)
 
+  if print_result
+    est = round(estimate, digits=round_digits)
+    eff_n0 = round(control.effective, digits=round_digits)
+    n0_eff = round(eff_n0 / control.N0, digits=round_digits)
+    eff_t0 = round(periods.effective, digits=round_digits)
+    t0_eff = round(eff_t0 / periods.T0, digits=round_digits)
+
+    summary_result = "synthdid: $(est) +- $(1.96 * se). Effective N0/N0 = $(eff_n0)/$(control.N0)~$(n0_eff). Effective T0/T0 = $(eff_t0)/$(periods.T0) ~ $(t0_eff). N1,T1 = $(control.N1), $(periods.T1)."
+    print(summary_result)
+  end
+
   if print_all
     print(control.data)
     print(periods.data)
   end
-  summary_synthdid(estimate, se, control, periods)
+  return summary_synthdid(estimate, se, control, periods)
 end
-

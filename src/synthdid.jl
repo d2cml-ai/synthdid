@@ -1,10 +1,11 @@
 mutable struct synthdid_est1
   estimate::Float64
-  weight
-  setup
-  opts
+  weight::Any
+  setup::Any
+  opts::Any
+  N0::Int64
+  T0::Int64
 end
-synthdid_est1(21, 31, 4, 5,)
 
 function sparsify_function(v::Vector)
   v[v.<=maximum(v)/4] .= 0
@@ -28,7 +29,14 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   max_iter::Int=10000,
   sparsify::Function=sparsify_function,
   max_iter_pre_sparsify::Int=100)
+  if (!(size(Y)[1] > N0) && !(size(Y)[2] > T0) && !(length(size(X)) == 2 || length(size(X)) == 3) & !(size(X)[1:2] == size(Y)) && !(isa(weights, Dict))
+      && !((isnothing(weights["lambda"])) || (length(weights["lambda"]) == T0)) && !((isnothing(weights["omega"])) || (length(weights["omega"]) == N0))
+      && !(!(isnothing(weights["lambda"])) || (update_lambda)) && !((!isnothing(weights["omega"]) || (update_omega))))
 
+    error("error at !(size(Y)[1] > N0) || !(size(Y)[2] > T0) || ... in synthdid_estimate function")
+  else
+    "continue"
+  end
 
   N1 = size(Y, 1) - N0
   T1 = size(Y, 2) - T0
@@ -90,8 +98,15 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
     "min_decrease" => min_decrease,
     "max_iter" => max_iter
   )
-  return synthdid_est1(estimate, weights, setup, opts)
+  return synthdid_est1(estimate, weights, setup, opts, N0, T0)
 end
+
+
+# setup = panel_matrices(data("california_prop99"));
+
+# algo = synthdid_estimate(setup.Y, setup.N0, setup.T0, omega_intercept=false)
+
+# algo.estimate
 
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
   estimate = synthdid_estimate(Y, N0, T0,
@@ -101,10 +116,16 @@ function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
   return estimate
 end
 
+
+# sc_estimate(setup.Y, setup.N0, setup.T0).estimate
+
 function did_estimate(Y, N0, T0; kargs...)
   estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0)), kargs...)
   return estimate
 end
+
+# did_estimate(setup.Y, setup.N0, setup.T0).estimate
+# did_estimate(setup.Y, setup.N0, setup.T0).estimate
 
 # TODO: synthdid_placebo, synthdid_effect_curve
 function synthdid_placebo(estimate::synthdid_est1, terated_fraction=nothing)

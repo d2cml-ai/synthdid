@@ -95,6 +95,21 @@ mutable struct update_weights1
   err_omega
 end
 
+mutable struct sc_weight_fw_covariates1
+  lambda
+  omega
+  beta
+  vals
+end
+
+mutable struct update_weights1
+  val
+  lambda
+  omega
+  err_lambda
+  err_omega
+end
+
 function sc_weight_fw_covariates(Y::Matrix; X=cat(zeros(size(Y)), dims=ndims(Y) + 1),
   zeta_lambda=0, zeta_omega=0,
   lambda_intercept=true, omega_intercept=true,

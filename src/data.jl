@@ -6,5 +6,13 @@ function data(file::String)
   return DataFrame(CSV.read(path, DataFrame))
 end
 
+function data1(file::String, jb=true)
+  if jb
+    path = joinpath("..\\data\\$(file).csv")
+    print(path)
+    return DataFrame(CSV.read(path, DataFrame))
+  end
+end
+
 
 # data("california_prop99")

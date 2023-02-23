@@ -5,11 +5,11 @@ using Statistics, CSV, DataFrames, Shuffle
 
 include("utils.jl")
 include("solver.jl")
-include("synthdid.jl")
 include("data.jl")
 include("vcov.jl")
 include("plots.jl")
 include("summary.jl")
+include("synthdid.jl")
 
 # setup_data = panel_matrices(data("california_prop99"));
 

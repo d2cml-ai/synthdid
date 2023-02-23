@@ -79,6 +79,7 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
     YC = collapse_form(Y, N0, T0)
     Xc = [collapse_form(Xi, N0, T0) for Xi in eachslice(X, dims=3)]
     Yc = collapsed.form(Y, N0, T0)
+    weights = sc_weight_fw_covariates(Yc, X=Xc, zeta_lambda=zeta_lambda, zeta_omega=zeta_omega, lambda_intercept=lambda_intercept, omega_intercept=omega_intercept, min_decrease=min_decrease, max_iter=max_iter, lambda=weights["lambda"], omega=weights["omega"], update_lambda=update_lambda, update_omega=update_omega)
   end
 
   weights["beta"] = nothing
@@ -102,8 +103,6 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
 end
 
 
-
-
 function sc_estimate(Y, N0, T0, eta_omega=1e-6; kargs...)
 
   estimate = synthdid_estimate(Y, N0, T0, eta_omega=1e-16, omega_intercept=false,
@@ -114,10 +113,9 @@ end
 
 
 function did_estimate(Y, N0, T0; kargs...)
-  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0), "vals" => [1, 2, 3.0]), kargs...)
+  estimate = synthdid_estimate(Y, N0, T0, weights=Dict("omega" => fill(1 / N0, N0), "lambda" => fill(1 / T0, T0), "vals" => [1, 2, 3.0], "algo" => nothing), kargs...)
   return estimate
 end
-
 
 
 

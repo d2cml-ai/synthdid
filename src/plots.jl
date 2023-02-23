@@ -1,6 +1,6 @@
 
 function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control_name="Synthetic control",
-  treated_color="#043e7c", control_color="#d8450a",
+  treated_color="#043e7c", control_color="#d8450a", arrow_color="#000000",
   year_unit_trayectory=nothing,
   facet=nothing, lambda_comparable=!isnothing(facet), overlay=0,
   lambda_plot_scale=3, line_width=1, guide_linetype=:dash, point_size=3,
@@ -86,11 +86,6 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
   post_time = lambda_target' * time
 
 
-  # treated_name = "Treated"
-  # treated_color = "#d8450a"
-  # control_name = "Synthetic control"
-  # control_color = "#043e7c"
-
   lines = DataFrame(
     y=hcat(obs_trayectory, syn_trayectory)'[:, 1],
     x=repeat(time, 2),
@@ -170,13 +165,15 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
     plot!(df_algo.x, df_algo.y, label="", color="black", line=guide_linetype, linewidth=line_width)
   end
   plot!()
-  plot!(arrow_df.x, arrow_df.y, color=control_color, arrow=(0.5, 0.1), line_width=0.1, label="")
+  plot!(arrow_df.x, arrow_df.y, color=arrow_color, arrow=(0.5, 0.1), line_width=0.1, label="")
   plot!(ribbons.x, ribbons.y, fillrange=bottom, color=control_color, label="")
   plot!(ribbons.x, ribbons.y, color=treated_color, label="", linewidth=line_width)
   vline!([T0s], color="black", alpha=0.4, label="")
+  if !isnothing(year_unit_trayectory)
+    xlims!(minimum(year_unit_trayectory), maximum(year_unit_trayectory))
+  end
   # xlabel!("Time")
   # ylabel!("Trayectory")
-
   plot_description = Dict(
     "lines" => lines,
     "points" => points,
@@ -192,7 +189,7 @@ function synthdid_plot(estimates::synthdid_est1; treated_name="Treated", control
 
 end
 
-function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo", negligible_alpha::Float64=0.3, negligible_threshold::Float64=0.001, x_ticks=nothing)
+function synthdid_units_plot(estimate::synthdid_est1; se_method::Union{Nothing,String}="placebo", negligible_alpha::Float64=0.3, negligible_threshold::Float64=0.001, x_ticks=nothing)
   est = estimate
 
   setup, weights, N0, T0 = est.setup, est.weight, est.N0, est.T0
@@ -236,8 +233,8 @@ function synthdid_units_plot(estimate::synthdid_est1; se_method::String="placebo
 
   p = plot()
 
-  scatter!(plot_data1.x, plot_data1.y, ms=plot_data1.weights * 120, color="black", label="")
-  scatter!(plot_data2.x, plot_data2.y, ms=plot_data2.weights * 120, color="black", label="", alpha=negligible_alpha,)
+  scatter!(plot_data1.x, plot_data1.y, ms=plot_data1.weights * 50, color="black", label="")
+  scatter!(plot_data2.x, plot_data2.y, ms=plot_data2.weights * 50, color="black", label="", alpha=negligible_alpha, market=:xcross)
   hline!([est_imate], color="#000000", label="")
   if !isnan(se)
     hline!([est_imate - 1.96 * se], color="#000000", line=:dash, label="")

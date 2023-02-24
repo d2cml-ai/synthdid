@@ -87,7 +87,8 @@ function synthdid_estimate(Y::Matrix, N0::Int, T0::Int;
   a = vcat(-weights["omega"], fill(1 / N1, N1))'
   b = vcat(-weights["lambda"], fill(1 / T1, T1))
 
-  estimate = a * (Y .- X_beta) * b
+  estimate = a * (Y) * b
+  # estimate = a * (Y .- X_beta) * b
   setup = Dict("Y" => Y, "X" => X, "N0" => N0, "T0" => T0)
   opts = Dict(
     "zeta_omega" => zeta_omega,

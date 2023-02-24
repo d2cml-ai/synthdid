@@ -12,15 +12,11 @@ Random.seed!(1234)
 
 cal = data("california_prop99")
 quote_example = data("quota_example")
-quote_example
-setup = panel_matrices(cal)
+setup = panel_matrices(quote_example)
 
 # setup = panel_matrices(cal);
 Y, N0, T0 = setup.Y, setup.N0, setup.T0
 
-
-
-Y
 tau_hat = synthdid_estimate(Y, N0, T0)
 
 sc_estimate(Y, N0, T0)

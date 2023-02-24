@@ -7,9 +7,9 @@ include("utils.jl")
 include("solver.jl")
 include("data.jl")
 include("vcov.jl")
+include("synthdid.jl")
 include("plots.jl")
 include("summary.jl")
-include("synthdid.jl")
 
 # setup_data = panel_matrices(data("california_prop99"));
 

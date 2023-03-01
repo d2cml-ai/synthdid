@@ -5,7 +5,9 @@
 cd "F:\work\synthdid\vignettes\data"
 
 
-import delimited "F:\work\synthdid\vignettes\data\quota_example.csv", clear
+// import delimited "F:\work\synthdid\vignettes\data\quota_example.csv", clear
+
+use quota, clear
 
 
 local 1 = "womparl"
@@ -14,6 +16,7 @@ local 3 = "year"
 local 4 = "quota"
 
 tempvar touse
+//
 mark `touse' `if' `in'
 **Check if group ID is numeric or string
 local clustvar "`2'"
@@ -33,98 +36,36 @@ else {
 }
 
 qui xtset `2' `3'
-// if `"`r(balanced)'"'!="strongly balanced" {
-//     dis as error "Panel is unbalanced."
-//     exit 451
-// }
+
 qui count if `1'==.
-if r(N)!=0 {
-    dis as error "Missing values found in dependent variable.  A balanced panel without missing observations is required."
-    exit 416
-}
+
 qui count if `4'==.
-if r(N)!=0 {
-    dis as error "Missing values found in treatment variable.  A balanced panel without missing observations is required."
-    exit 416
-}
+
 qui count if `4'!=0&`4'!=1
-if r(N)!=0 {
-    dis as error "Treatment variable takes values distinct from 0 and 1."
-    exit 450
-}
+
 qui sum `3'
 qui sum `4' if `3'==r(min)
-if r(max)!=0 {
-    dis as error "Certain units are treated in the first period of the panel."
-    dis as error "Any units which are treated the entire panel should not be included in the synthetic DID procedure."
-    exit 459
-}
+
 qui sum `4'
-if (r(min)==0 & r(max)==0)==1 {
-    di as error "All units are controls."
-    exit 459
-}
 
 tempvar a1 a2
 qui gen `a1'=`3' if `4'==1
 qui bys `2': egen `a2'=min(`a1')
 qui levelsof `a2', local(A2)
-foreach t of local A2 {
-    qui sum `4' if `3'>=`t'
-    if r(min)==r(max) {
-        di as error "All units are treated in some adoption time."
-        exit 459
-    }
-}
+
 
 
 tempvar test
 qui bys `2' (`3'): gen `test'=`4'-`4'[_n-1] 
 qui sum `test'
 qui count if `test'!=0&`test'!=1&`test'!=.
-if r(N)!=0 {
-    local e1 "to only change from untreated to treated, or remain untreated."
-    dis as error "Units are observed to change from treated (earlier) to untreated (later)."
-    dis as error "A staggered adoption is assumed in which units are assumed `e1'"
-    exit 459
-}
-drop `test'
-
-local SEN "standard error needs"
-if "`vce'"=="jackknife" {
-    tempvar t1 t2
-    qui gen `t1'=`3' if `4'==1
-    qui bys `2': egen `t2'=min(`t1')
-    qui levelsof `t2', local(T2)
-    foreach t of local T2 {
-        qui sum `2' if `4'==1 & `t2'==`t'
-        if r(min)==r(max) {
-            di as error "Jackknife `SEN' at least two treated units for each treatment period"
-            exit 451
-        }
-    }
-}
-
-if (length("`if'")+length("`in'")>0) {
-    restore
-}
 
 tempvar treated ty tyear n
 qui gen `ty' = `3' if `4'==1 
-qui bys `2': egen `treated' = max(`4') if `touse'
-qui by  `2': egen `tyear'   = min(`ty') if `touse'
-
-if (length("`if'")+length("`in'")>0) {
-    preserve
-    qui keep if `touse'
-}
+qui bys `2': egen `treated' = max(`4') 
+qui by  `2': egen `tyear'   = min(`ty') 
 
 sort `3' `treated' `2'
-if "`mattitles'"!="" {
-    if `stringvar'==1 qui levelsof `groupvar' if `treated'==0
-    else              qui levelsof `2' if `treated'==0
-    local rnames = r(levels)
-}
 
 gen `n'=_n
 qui sum `3'
@@ -134,60 +75,16 @@ if (length("`if'")+length("`in'")>0) {
     restore
 }
 
-if length("`graph'")!=0&`stringvar'==1 {
-    preserve
-    qui sum `3' if `touse'
-    **Save original state names for later use with graph
-    qui keep if `3' == r(min) & `touse'
-    keep `groupvar' `2'
-    tempfile stateString
-    rename `groupvar' stateName
-    rename `2' state
-    qui save `stateString'
-    restore
-}
-local control_opt = 0
-if "`covariates'"!="" {
-    _parse_X `covariates'
-    if "`r(ctype)'"=="optimized" local control_opt = 2
-    if "`r(ctype)'"=="projected" local control_opt = 1
-    local conts = r(controls)
-    local contname = r(controls)
-	
-    foreach var of varlist `contname' {
-        qui sum `var'
-        if r(sd)==0 {
-            dis as error "Covariates were found to be constant in the estimation sample."
-            dis as error "Please remove constant covariates from the covariate set."
-            exit 416
-        }
-    }
-	
-    if `control_opt'==2&length(`"`unstandardized'"')==0 {
-        local sconts
-        foreach var of varlist `conts' {
-            tempvar z`var'
-            qui egen `z`var''= std(`var') if `touse'
-            local sconts `sconts' `z`var''
-        }
-        local conts `sconts'
-    }
-	
-    tempvar nmiss
-    qui egen `nmiss' = rowmiss(`conts')
-    qui sum `nmiss' if `touse'
-    if r(mean)!=0 {
-        dis as error "Missing values found in covariates."
-        dis as error "A balanced panel without missing observations is required."
-        exit 416
-    }
-}
-local m=1
-display "`m'"
 
+local control_opt = 0
+
+local m=1
+// mata: data1 = st_data(., ("`4' `treated'" "`1'"))
 mata: data0 = st_data(.,("`1' `2' `2' `3' `4' `treated' `tyear' `conts'"))
+
 mata: data  = sort(data0, (6,2,4))
 mata: units = panelsetup(data,2)
+/// units
 mata: NT = panelstats(units)[,3]
 mata: treat=panelsum(data[.,(2,5)],units)
 mata: treat[,1]=treat[,1]/NT
@@ -197,32 +94,34 @@ mata: controlID = uniqrows(select(data[.,2],data[,7]:==.))
 mata: jk = 1
 mata: inference = 0
 mata: controls = 0
+mata: mt = 1
 mata:
-        if (jk==1) {
+//         if (jk==1) {
             uniqID=(uniqrows(select(data[.,2],data[,7]:==.)) \ uniqrows(select(data[.,2],data[,7]:!=.)))
             N = panelstats(units)[,1]
-        }
-		
-        //matrix for beta
-        if (inference==0 & (controls==0)) {
+//         }
+// end
+		//		
+//         //matrix for beta
+//         if (inference==0 & (controls==0)) {
             Beta = J(1, 1, .)
-        }
-		
-        //Adjust for controls in xysnth way
-        //save original data for jackknife
+//         }
+//		
+//         //Adjust for controls in xysnth way
+//         //save original data for jackknife
         data_ori=data
-		
+//		
 		trt = select(uniqrows(data[,7]),uniqrows(data[,7]):!=.)
-		
-        //Iterate over years, calculating each estimate
+//		
+//         //Iterate over years, calculating each estimate
         tau    = J(rows(trt),1,.)
         tau_wt = J(1,rows(trt),.)
-		
-        if (inference==0) {
+// 		att = tau_wt * tau
+//         if (inference==0) {
             Omega = J(Nco, rows(trt),.)
             Lambda = J(NT, rows(trt),.)
-        }
-			for(yr=1;yr<=rows(trt);++yr) {
+//         }
+			for(yr=1;yr<=1;++yr) {
             cond1 = data[,7]:==trt[yr]
             cond2 = data[,7]:==.
             cond = cond1+cond2
@@ -250,8 +149,40 @@ mata:
             prediff = select(diff,dropc:==0)
             sig_t = sqrt(variance(prediff))
             EtaLambda = 1e-6
+			if (mt!=3) {
+                EtaOmega = (yNtr*yTpost)^(1/4)
+            }
+			yZetaOmega  = EtaOmega*sig_t
+            yZetaLambda = EtaLambda*sig_t
+            //Generate Y matrices
+//             ids = uniqrows(ydata[.,2])
+            ytreat = ydata[,7]:==trt[yr]
+            ytreat=panelsum(ytreat,yunits)
+            ytreat=ytreat/yNT
+            Y = rowshape(ydata[.,1],yNG)
+            Y0 = select(Y,ytreat:==0)
+            Y1 = select(Y,ytreat:==1)
+//             //Generate average of outcomes for each unit over time
+            promt = mean(Y0[,(Npre+1)::yNT]')'
+//             //Calculate input matrices (pre-treatment and averages)
+            A_l = Y0[,1..Npre]:-mean(Y0[,1..Npre])
+            b_l = promt:-mean(promt)
+//			
+//             if (mt!=3) {
+                A_o = Y0[,1..Npre]':-mean(Y0[,1..Npre]')
+                b_o = mean(Y1[.,1..Npre])':-mean(mean(Y1[.,1..Npre])')
+//             }
+//
+//             //Calculate Tau for t
+//		
+//                if (mt!=3) {
+                    lambda_l = J(1,cols(A_l),1/cols(A_l))
+//                 }
+                lambda_o = J(1,cols(A_o),1/cols(A_o))
+//                
+            mindec = (1e-5*sig_t)^2
 			}
 end
-
-
-mata: mata describe
+//
+//
+// mata: mata describe
